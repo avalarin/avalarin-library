@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="LocalizationDictionaryFile"
+    targetNamespace="http://tempuri.org/LocalizationDictionaryFile.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://tempuri.org/LocalizationDictionaryFile.xsd"
+    xmlns:mstns="http://tempuri.org/LocalizationDictionaryFile.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+    <xs:element name="items">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="item">
+                    <xs:complexType>
+                        <xs:attribute name="key" type="xs:QName" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+</xs:schema>
