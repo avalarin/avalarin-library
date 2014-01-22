@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,8 +6,9 @@ using System.Reflection;
 
 namespace Avalarin.Utils {
     public static class ObjectPropertiesUtility {
+        private static readonly object LockRoot = new object();
         private static readonly IDictionary<Type, IDictionary<string, IPropertyAccessor>> Cache =
-            new ConcurrentDictionary<Type, IDictionary<string, IPropertyAccessor>>();
+            new Dictionary<Type, IDictionary<string, IPropertyAccessor>>();
         private static readonly MethodInfo LambdaExpressionMethod = typeof(Expression).GetGenericMethod("Lambda",
             BindingFlags.Public | BindingFlags.Static, (type1) => new[] { typeof(Expression), typeof(ParameterExpression[]) });
 
@@ -23,19 +23,22 @@ namespace Avalarin.Utils {
             if (func == null) throw new ArgumentNullException("func");
             var type = data.GetType();
             IDictionary<string, IPropertyAccessor> cache;
-            if (Cache.TryGetValue(type, out cache)) {
-                foreach (var item in cache) {
-                    func(item.Key, item.Value.GetValue(data));
+            if (!Cache.TryGetValue(type, out cache)) {
+                lock (LockRoot) {
+                    if (!Cache.TryGetValue(type, out cache)) {
+                        cache = new Dictionary<string, IPropertyAccessor>();
+                        foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(property => property.CanRead)) {
+                            var accessor = GetPropertyAccessor(type, property);
+                            cache[property.Name] = accessor;
+                            func(property.Name, accessor.GetValue(data));
+                        }
+                        Cache[type] = cache;
+                        return;
+                    }
                 }
             }
-            else {
-                cache = new Dictionary<string, IPropertyAccessor>();
-                foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(property => property.CanRead)) {
-                    var accessor = GetPropertyAccessor(type, property);
-                    cache[property.Name] = accessor;
-                    func(property.Name, accessor.GetValue(data));
-                }
-                Cache[type] = cache;
+            foreach (var item in cache) {
+                func(item.Key, item.Value.GetValue(data));
             }
         }
 
