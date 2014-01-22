@@ -162,6 +162,28 @@ namespace Avalarin.Data {
                 return this;
             }
 
+            public DbCommandWrapper WithParameters(IDictionary<string, object> parameters) {
+                if (parameters == null) throw new ArgumentNullException("parameters");
+                foreach (var key in parameters.Keys) {
+                    var value = parameters[key];
+                    if (Parameters.ContainsKey(key)) {
+                        throw new DuplicateNameException("Dublicate parameter '" + key + "'.");
+                    }
+                    Parameters[key] = value;
+                }
+                return this;
+            }
+
+            public DbCommandWrapper WithParameter(string name, object value) {
+                if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("name", "Name cannot be null or empty.");
+                if (value == null) throw new ArgumentNullException("value");
+                if (Parameters.ContainsKey(name)) {
+                    throw new DuplicateNameException("Dublicate parameter '" + name + "'.");
+                }
+                Parameters[name] = value;
+                return this;
+            }
+
             public DbCommandWrapper WithTransaction(IDbTransaction transaction) {
                 if (transaction == null) throw new ArgumentNullException("transaction");
                 Transaction = transaction;
