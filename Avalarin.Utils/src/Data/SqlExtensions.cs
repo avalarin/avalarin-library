@@ -138,7 +138,7 @@ namespace Avalarin.Data {
 
             private Action<IDbCommand> BeforeExecutionHandler { get; set; }
             private Action<IDbCommand, object> OnCompletedHandler { get; set; }
-            private Func<Exception, IDbCommand, bool> OnExceptionHandler { get; set; }
+            private Action<Exception, IDbCommand> OnExceptionHandler { get; set; }
 
             private DbCommandWrapper(IDbConnection connection, CommandType commandType, string text) {
                 if (connection == null) throw new ArgumentNullException("connection");
@@ -207,35 +207,11 @@ namespace Avalarin.Data {
                 return this;
             }
 
-            public DbCommandWrapper OnException(Func<Exception, IDbCommand, bool> handler) {
+            public DbCommandWrapper OnException(Action<Exception, IDbCommand> handler) {
                 if (handler == null) throw new ArgumentNullException("handler");
                 OnExceptionHandler += handler;
                 return this;
             }
-
-            public DbCommandWrapper OnException(Action<Exception, IDbCommand> handler) {
-                if (handler == null) throw new ArgumentNullException("handler");
-                OnException((e, cmd) => {
-                    handler(e, cmd);
-                    return false;
-                });
-                return this;
-            }
-
-            public DbCommandWrapper OnException(Func<Exception, bool> handler) {
-                if (handler == null) throw new ArgumentNullException("handler");
-                OnException((e, cmd) => handler(e));
-                return this;
-            }
-
-            public DbCommandWrapper OnException(Action<Exception> handler) {
-                if (handler == null) throw new ArgumentNullException("handler");
-                OnException((e, cmd) => {
-                    handler(e);
-                    return false;
-                });
-                return this;
-            } 
             #endregion
 
             #region Execution
@@ -262,13 +238,10 @@ namespace Avalarin.Data {
                         return result;
                     }
                     catch (Exception e) {
-                        if (OnExceptionHandler == null) {
-                            throw;
+                        if (OnExceptionHandler != null) {
+                            OnExceptionHandler(e, cmd);
                         }
-                        if (!OnExceptionHandler(e, cmd)) {
-                            throw;
-                        }
-                        return default(T);
+                        throw;
                     }
                 }
             }
