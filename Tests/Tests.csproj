@@ -60,6 +60,7 @@
     <Compile Include="src\Utils\Data\ReaderUtilsTest.cs" />
     <Compile Include="src\Utils\ObjectPropertiesUtilityTest.cs" />
     <Compile Include="src\Utils\SimpleSerializerTests.cs" />
+    <Compile Include="src\Utils\ObjectPropertiesUtilityPerfomanceTest.cs" />
     <Compile Include="src\WebUtils\Localization.cs" />
   </ItemGroup>
   <ItemGroup>
