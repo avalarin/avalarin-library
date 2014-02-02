@@ -5,8 +5,6 @@ using Avalarin.Utils;
 
 namespace Avalarin.Data {
     public static class SqlExtensions {
-        private const int DefaultCommandTimeout = 30;
-
         public static SqlExtensions.DbCommandWrapper Sp(this IDbConnection connection, string text) {
             if (connection == null) throw new ArgumentNullException("connection");
             if (text == null) throw new ArgumentNullException("text");
@@ -28,7 +26,7 @@ namespace Avalarin.Data {
 
             private IDictionary<string, object> Parameters { get { return _parameters; } }
             private IDbTransaction Transaction { get; set; }
-            private int Timeout { get; set; }
+            private int? Timeout { get; set; }
 
             private Action<IDbCommand> BeforeExecutionHandler { get; set; }
             private Action<IDbCommand, object> OnCompletedHandler { get; set; }
@@ -41,7 +39,7 @@ namespace Avalarin.Data {
                 CommandType = commandType;
                 Text = text;
 
-                Timeout = SqlExtensions.DefaultCommandTimeout;
+                Timeout = null;
             }
 
             #region Modification
@@ -116,7 +114,9 @@ namespace Avalarin.Data {
                     cmd.Transaction = Transaction;
                     cmd.CommandType = CommandType;
                     cmd.CommandText = Text;
-                    cmd.CommandTimeout = Timeout;
+                    if (Timeout.HasValue) {
+                        cmd.CommandTimeout = Timeout.Value;
+                    }
                     cmd.AddInputParameters(Parameters);
                     if (BeforeExecutionHandler != null) {
                         BeforeExecutionHandler(cmd);
