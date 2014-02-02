@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using Avalarin.Utils;
 
 namespace Avalarin.Data {
@@ -19,12 +20,14 @@ namespace Avalarin.Data {
 
         public sealed class DbCommandWrapper {
             private readonly IDictionary<string, object> _parameters = new Dictionary<string, object>();
+            private readonly IDictionary<string, IOutputParameter> _outputParameters = new Dictionary<string, IOutputParameter>();
 
             private IDbConnection Connection { get; set; }
             public CommandType CommandType { get; private set; }
             public string Text { get; private set; }
 
             private IDictionary<string, object> Parameters { get { return _parameters; } }
+            private IDictionary<string, IOutputParameter> OutputParameters { get { return _outputParameters; } }
             private IDbTransaction Transaction { get; set; }
             private int? Timeout { get; set; }
 
@@ -46,9 +49,7 @@ namespace Avalarin.Data {
             public DbCommandWrapper WithParameters(object parameters) {
                 if (parameters == null) throw new ArgumentNullException("parameters");
                 parameters.EachProperties((name, value) => {
-                    if (Parameters.ContainsKey(name)) {
-                        throw new DuplicateNameException("Dublicate parameter '" + name + "'.");
-                    }
+                    CheckParameterForDuplication(name);
                     Parameters[name] = value;
                 });
                 return this;
@@ -58,9 +59,7 @@ namespace Avalarin.Data {
                 if (parameters == null) throw new ArgumentNullException("parameters");
                 foreach (var key in parameters.Keys) {
                     var value = parameters[key];
-                    if (Parameters.ContainsKey(key)) {
-                        throw new DuplicateNameException("Dublicate parameter '" + key + "'.");
-                    }
+                    CheckParameterForDuplication(key);
                     Parameters[key] = value;
                 }
                 return this;
@@ -69,10 +68,38 @@ namespace Avalarin.Data {
             public DbCommandWrapper WithParameter(string name, object value) {
                 if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("name", "Name cannot be null or empty.");
                 if (value == null) throw new ArgumentNullException("value");
-                if (Parameters.ContainsKey(name)) {
-                    throw new DuplicateNameException("Dublicate parameter '" + name + "'.");
-                }
+                CheckParameterForDuplication(name);
                 Parameters[name] = value;
+                return this;
+            }
+
+            public DbCommandWrapper WithOutputParameter<T>(string name, Action<T> setter) {
+                return WithOutputParameter<T>(name, 0, setter);
+            }
+
+            public DbCommandWrapper WithOutputParameter<T>(string name, int size, Action<T> setter) {
+                CheckParameterForDuplication(name);
+                OutputParameters.Add(name, new OutputParameter<T>(name, size, setter));
+                return this;
+            }
+
+            public DbCommandWrapper WithOutputParameter<T>(string name, DbType type, Action<T> setter) {
+                return WithOutputParameter<T>(name, type, 0, setter);
+            }
+
+            public DbCommandWrapper WithOutputParameter<T>(string name, DbType type, int size, Action<T> setter) {
+                CheckParameterForDuplication(name);
+                OutputParameters.Add(name, new OutputParameter<T>(name, type, size, setter));
+                return this;
+            }
+
+            public DbCommandWrapper WithOutputParameter(string name, DbType type, Action<object> setter) {
+                return WithOutputParameter(name, type, 0, setter);
+            }
+
+            public DbCommandWrapper WithOutputParameter(string name, DbType type, int size, Action<object> setter) {
+                CheckParameterForDuplication(name);
+                OutputParameters.Add(name, new OutputParameter(name, type, size, setter));
                 return this;
             }
 
@@ -118,6 +145,9 @@ namespace Avalarin.Data {
                         cmd.CommandTimeout = Timeout.Value;
                     }
                     cmd.AddInputParameters(Parameters);
+                    foreach (var outputParameter in OutputParameters.Values) {
+                        cmd.AddOutputParameter(outputParameter.Name, outputParameter.DbType, outputParameter.Size);
+                    }
                     if (BeforeExecutionHandler != null) {
                         BeforeExecutionHandler(cmd);
                     }
@@ -126,6 +156,10 @@ namespace Avalarin.Data {
                     }
                     try {
                         var result = executeHandler(cmd);
+                        foreach (var outputParameter in OutputParameters.Values) {
+                            var parameter = (DbParameter)cmd.Parameters[outputParameter.Name];
+                            outputParameter.SetValue(parameter.Value);
+                        }
                         if (OnCompletedHandler != null) {
                             OnCompletedHandler(cmd, result);
                         }
@@ -198,7 +232,12 @@ namespace Avalarin.Data {
                 return new DbCommandWrapper(connection, CommandType.Text, text);
             } 
             #endregion
-        }
 
+            private void CheckParameterForDuplication(string name) {
+                if (Parameters.ContainsKey(name) || OutputParameters.ContainsKey(name)) {
+                    throw new DuplicateNameException("Duplicate parameter '" + name + "'.");
+                }
+            }
+        }
     }
 }

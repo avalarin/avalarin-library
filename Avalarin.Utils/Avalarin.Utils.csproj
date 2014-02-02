@@ -45,6 +45,8 @@
     <Compile Include="src\Config\Wrappers\EmailConfigWrapper.cs" />
     <Compile Include="src\Config\Wrappers\PopConfigWrapper.cs" />
     <Compile Include="src\Config\Wrappers\SmtpConfigWrapper.cs" />
+    <Compile Include="src\Data\DbTypeConverter.cs" />
+    <Compile Include="src\Data\OutputParameter.cs" />
     <Compile Include="src\Data\SqlParameterExtensions.cs" />
     <Compile Include="src\ISerializationContext.cs" />
     <Compile Include="src\CustomComparer.cs" />
