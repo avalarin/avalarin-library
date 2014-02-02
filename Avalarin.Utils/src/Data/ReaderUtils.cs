@@ -47,7 +47,8 @@ namespace Avalarin.Data {
             }
             catch (InvalidCastException invalidCastException) {
                 var readerType = reader.GetFieldType(ordinal);
-                throw new InvalidCastException(string.Format("Cannot cast {0} to {1}. Field name: {2}.", readerType, typeof(T), name), invalidCastException);
+                var readerValue = reader.IsDBNull(ordinal) ? "<NULL>" : reader[ordinal];
+                throw new InvalidCastException(string.Format("Cannot cast {0}({1}) to {2}. Field name: {3}.", readerType, readerValue, typeof(T), name), invalidCastException);
             }
             
         }
