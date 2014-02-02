@@ -58,6 +58,7 @@
     <Compile Include="src\StringUtility.cs" />
     <Compile Include="src\Utils\ConfigWrappersTest.cs" />
     <Compile Include="src\Utils\Data\ReaderUtilsTest.cs" />
+    <Compile Include="src\Utils\Data\SqlExtensionsTest.cs" />
     <Compile Include="src\Utils\ObjectPropertiesUtilityTest.cs" />
     <Compile Include="src\Utils\SimpleSerializerTests.cs" />
     <Compile Include="src\Utils\ObjectPropertiesUtilityPerfomanceTest.cs" />
@@ -73,7 +74,13 @@
       <Name>Hazzard.Web.Utils</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="res\TestDataBaseCreationScript.sql" />
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
