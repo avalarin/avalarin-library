@@ -32,8 +32,6 @@ namespace Avalarin.Data {
             private int? Timeout { get; set; }
 
             private Action<IDbCommand> BeforeExecutionHandler { get; set; }
-            private Action<IDbCommand, object> OnCompletedHandler { get; set; }
-            private Action<Exception, IDbCommand> OnExceptionHandler { get; set; }
 
             private DbCommandWrapper(IDbConnection connection, CommandType commandType, string text) {
                 if (connection == null) throw new ArgumentNullException("connection");
@@ -119,18 +117,6 @@ namespace Avalarin.Data {
                 BeforeExecutionHandler = handler;
                 return this;
             }
-
-            public DbCommandWrapper OnCompleted(Action<IDbCommand, object> handler) {
-                if (handler == null) throw new ArgumentNullException("handler");
-                OnCompletedHandler = handler;
-                return this;
-            }
-
-            public DbCommandWrapper OnException(Action<Exception, IDbCommand> handler) {
-                if (handler == null) throw new ArgumentNullException("handler");
-                OnExceptionHandler += handler;
-                return this;
-            }
             #endregion
 
             #region Execution
@@ -154,23 +140,12 @@ namespace Avalarin.Data {
                     if (Connection.State == ConnectionState.Closed) {
                         Connection.Open();
                     }
-                    try {
-                        var result = executeHandler(cmd);
-                        foreach (var outputParameter in OutputParameters.Values) {
-                            var parameter = (DbParameter)cmd.Parameters[outputParameter.Name];
-                            outputParameter.SetValue(parameter.Value);
-                        }
-                        if (OnCompletedHandler != null) {
-                            OnCompletedHandler(cmd, result);
-                        }
-                        return result;
+                    var result = executeHandler(cmd);
+                    foreach (var outputParameter in OutputParameters.Values) {
+                        var parameter = (DbParameter)cmd.Parameters[outputParameter.Name];
+                        outputParameter.SetValue(parameter.Value);
                     }
-                    catch (Exception e) {
-                        if (OnExceptionHandler != null) {
-                            OnExceptionHandler(e, cmd);
-                        }
-                        throw;
-                    }
+                    return result;
                 }
             }
 
