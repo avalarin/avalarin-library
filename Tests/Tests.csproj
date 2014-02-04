@@ -56,6 +56,7 @@
   <ItemGroup>
     <Compile Include="src\Properties\AssemblyInfo.cs" />
     <Compile Include="src\StringUtility.cs" />
+    <Compile Include="src\TestException.cs" />
     <Compile Include="src\Utils\ConfigWrappersTest.cs" />
     <Compile Include="src\Utils\Data\ReaderUtilsTest.cs" />
     <Compile Include="src\Utils\Data\SqlExtensionsTest.cs" />
