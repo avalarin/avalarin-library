@@ -160,18 +160,13 @@ namespace Avalarin.Data {
                 return Execute(cmd => cmd.ExecuteScalar());
             }
 
-            public void ExecuteReader(Action<IDataReader, IDataParameterCollection> callback) {
+            public T ExecuteReader<T>(Func<IDataReader, T> callback) {
                 if (callback == null) throw new ArgumentNullException("callback");
-                Execute<object>(cmd => {
+                return Execute(cmd => {
                     using (var reader = cmd.ExecuteReader()) {
-                        callback(reader, cmd.Parameters);
+                        return callback(reader);
                     }
-                    return null;
                 });
-            }
-
-            public void ExecuteReader(Action<IDataReader> callback) {
-                ExecuteReader((reader, parameters) => callback(reader));
             }
 
             public IEnumerable<T> ExecuteAndReadAll<T>(MapperWithIndex<T> mapper) {
