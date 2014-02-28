@@ -89,7 +89,6 @@ namespace Avalarin.Data {
         }
 
         public DbCommandWrapper WithTransaction(IDbTransaction transaction) {
-            if (transaction == null) throw new ArgumentNullException("transaction");
             Transaction = transaction;
             return this;
         }
