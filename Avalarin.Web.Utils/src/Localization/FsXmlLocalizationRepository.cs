@@ -11,7 +11,6 @@ using Avalarin.Utils;
 
 namespace Avalarin.Web.Localization {
     public sealed class FsXmlLocalizationRepository : ILocalizationRepository, IDisposable {
-        private readonly object _lockRoot = new object();
         private readonly string _rootPath;
         private readonly IDictionary<string, LocalizationDictionary> _dictionaries;
         private readonly Func<string, string> _defaultValueFormatter;
