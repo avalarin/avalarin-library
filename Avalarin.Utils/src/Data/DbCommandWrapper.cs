@@ -93,7 +93,7 @@ namespace Avalarin.Data {
             return this;
         }
 
-        public DbCommandWrapper WithTimeout(int timeout) {
+        public DbCommandWrapper WithTimeout(int? timeout) {
             Timeout = timeout;
             return this;
         }
