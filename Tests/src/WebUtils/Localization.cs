@@ -94,6 +94,18 @@ namespace Tests.WebUtils {
         }
 
         [TestMethod]
+        public void ReadingFromLocalizationContext() {
+            dynamic context = Repo.CreateContext(TestCulture, TestPath);
+            foreach (var kvp in TestValues) {
+                Assert.AreEqual(kvp.Value, context.Localize(kvp.Key));
+                Assert.AreEqual(kvp.Value, context[kvp.Key]);
+            }
+            Repo.Set(TestCulture, TestPath, "TestDynamic", "TestMessage");
+            Assert.AreEqual("TestMessage", context.TestDynamic);
+            Assert.AreEqual(MakeDefaultValue("TestDynamicNotFound"), context.TestDynamicNotFound);
+        }
+
+        [TestMethod]
         public void Writing() {
             Repo.Set(TestCulture, TestPath, "hello", "Testing");
             Assert.AreEqual("Testing", Repo.Get(TestCulture, TestPath, "hello"));
