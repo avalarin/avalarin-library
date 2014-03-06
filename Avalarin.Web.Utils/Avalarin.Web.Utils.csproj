@@ -45,6 +45,8 @@
     <Compile Include="src\Config\AppConfigurationProvider.cs" />
     <Compile Include="src\Localization\FsXmlLocalizationRepository.cs" />
     <Compile Include="src\Localization\ILocalizationRepository.cs" />
+    <Compile Include="src\Localization\LocalizationContext.cs" />
+    <Compile Include="src\Localization\LocalizationRepositoryExtensions.cs" />
     <Compile Include="src\Security\CookieSessionProvider.cs" />
     <Compile Include="src\Security\ISessionProvider.cs" />
     <Compile Include="src\Security\Session.cs" />
